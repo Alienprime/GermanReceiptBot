@@ -1,0 +1,272 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -180,
+        -100
+      ],
+      "id": "8a43a719-808b-4435-aab8-468504e59acd",
+      "name": "Telegram Trigger",
+      "webhookId": "49c52314-478c-443c-b606-0315c7811297",
+      "credentials": {
+        "telegramApi": {
+          "id": "OlLtLbRblpLEgsrq",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.photo[3].file_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        -100
+      ],
+      "id": "2eb9d49a-1124-4f0d-8fad-cb13ececbc09",
+      "name": "Telegram",
+      "webhookId": "99d0272e-c7ff-4302-9649-a33cfb2fe7f6",
+      "credentials": {
+        "telegramApi": {
+          "id": "OlLtLbRblpLEgsrq",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "=",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1QO_vjCl_LD_y9rmOaaQ4GidwXQG0xB1l",
+          "mode": "list",
+          "cachedResultName": "OCR-n8n",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1QO_vjCl_LD_y9rmOaaQ4GidwXQG0xB1l"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        220,
+        -100
+      ],
+      "id": "2955c44e-b8ba-4858-a1da-ed184c4a3901",
+      "name": "Google Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "a3bQaT3zfcacu0pT",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mistral.ai/v1/ocr",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "mistralCloudApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"mistral-ocr-latest\",\n  \"document\": {\n    \"type\": \"image_url\",\n    \"image_url\": \"{{ $json.webContentLink }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "d198bce3-f2c8-4108-8f70-61a09581041e",
+      "name": "Mistral IMAGE OCR",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        420,
+        -100
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "4tdNrmGoeP0RLty5",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Translate this and write what is my bill.\n {{ $json.pages[0].markdown }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        620,
+        -100
+      ],
+      "id": "f39f6560-1e05-4bb2-9394-6d80401ed75d",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash-001",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        640,
+        140
+      ],
+      "id": "6b63edd8-3d2e-4354-9110-ec81734476af",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "DukXEA4jmuFpvRgB",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.sanitizedText }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1100,
+        -100
+      ],
+      "id": "0731869f-3f4d-432b-8dc2-4a53470a6613",
+      "name": "Telegram1",
+      "webhookId": "338e00e8-7e5e-430d-9c83-658984fc2955",
+      "notesInFlow": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "OlLtLbRblpLEgsrq",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the text from the input\nlet text = $input.first().json.text;\n\nfunction sanitizeText(input) {\n  // Escape special characters for JSON\n  let sanitizedText = input;\n\n  // Escape special characters for Markdown parsing in Telegram\n  sanitizedText = sanitizedText.replace(/_/g, '\\\\_')  // Escape underscores\n                               .replace(/\\*/g, '\\\\*')  // Escape asterisks\n                               .replace(/\\[/g, '\\\\[')  // Escape square brackets\n                               .replace(/\\]/g, '\\\\]')  // Escape square brackets\n                               .replace(/~/g, '\\\\~')    // Escape tilde\n                               .replace(/`/g, '\\\\`')    // Escape backticks\n                               .replace(/_/g, '\\\\_');   // Escape underscores\n\n  return sanitizedText;\n}\n\n// Apply the sanitization to the input text\nlet sanitizedText = sanitizeText(text);\n\n// Return the sanitized text to the next node\nreturn [\n  {\n    json: {\n      sanitizedText: sanitizedText\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        -100
+      ],
+      "id": "e81508d3-558c-4703-b034-d365cf6f1553",
+      "name": "Code"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral IMAGE OCR": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Mistral IMAGE OCR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "85f5714b-2741-4123-924e-e4b61cd48afa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "379fd50e6aabbde0704b38e7d598d0e55325ff93f87eeb4eb821db3ce255ef51"
+  },
+  "id": "7D9g1dRcGnzGPZxS",
+  "tags": []
+}
