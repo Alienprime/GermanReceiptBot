@@ -19,7 +19,7 @@
       "webhookId": "49c52314-478c-443c-b606-0315c7811297",
       "credentials": {
         "telegramApi": {
-          "id": "OlLtLbRblpLEgsrq",
+          "id": "0000",
           "name": "Telegram account"
         }
       }
@@ -74,7 +74,7 @@
       "name": "Google Drive",
       "credentials": {
         "googleDriveOAuth2Api": {
-          "id": "a3bQaT3zfcacu0pT",
+          "id": "0000",
           "name": "Google Drive account"
         }
       }
@@ -100,7 +100,7 @@
       "typeVersion": 4.2,
       "credentials": {
         "mistralCloudApi": {
-          "id": "4tdNrmGoeP0RLty5",
+          "id": "0000",
           "name": "Mistral Cloud account"
         }
       }
@@ -134,7 +134,7 @@
       "name": "Google Gemini Chat Model",
       "credentials": {
         "googlePalmApi": {
-          "id": "DukXEA4jmuFpvRgB",
+          "id": "0000",
           "name": "Google Gemini(PaLM) Api account"
         }
       }
@@ -159,7 +159,7 @@
       "notesInFlow": false,
       "credentials": {
         "telegramApi": {
-          "id": "OlLtLbRblpLEgsrq",
+          "id": "0000",
           "name": "Telegram account"
         }
       }
